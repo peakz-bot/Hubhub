@@ -83,10 +83,17 @@ do
     })
 
     local MobDropdown = Tabs.Main:AddDropdown("SelectedMob", {
-        Title = "Select Target Mob",
+        Title = "Select Target Mobs",
         Values = {"None"},
         Multi = true,
         Default = {},
+    })
+
+    local PriorityMobDropdown = Tabs.Main:AddDropdown("PriorityMob", {
+        Title = "Select Priority Mob",
+        Values = {"None"},
+        Multi = false,
+        Default = 1,
     })
 
     local function UpdateMobList(worldName)
@@ -117,9 +124,13 @@ do
         if #mobNames > 0 then
             MobDropdown:SetValues(mobNames)
             MobDropdown:SetValue({[mobNames[1]] = true})
+            PriorityMobDropdown:SetValues(mobNames)
+            PriorityMobDropdown:SetValue("None")
         else
             MobDropdown:SetValues({"None"})
             MobDropdown:SetValue({})
+            PriorityMobDropdown:SetValues({"None"})
+            PriorityMobDropdown:SetValue("None")
         end
     end
 
@@ -144,6 +155,7 @@ do
     local function GetNextMob()
         local targetWorld = Options.SelectedWorld.Value
         local targetMobsTable = Options.SelectedMob.Value
+        local priorityMobName = Options.PriorityMob and Options.PriorityMob.Value or "None"
         
         local hasTarget = false
         if type(targetMobsTable) == "table" then
@@ -151,6 +163,7 @@ do
                 if v and k ~= "None" then hasTarget = true; break end
             end
         end
+        if priorityMobName ~= "None" then hasTarget = true end
 
         if not targetWorld or not hasTarget then return nil end
         
@@ -161,33 +174,46 @@ do
             table.insert(worldsToScan, targetWorld)
         end
 
+        local fallbackMob = nil
+
         for _, wName in ipairs(worldsToScan) do
             local worldInfo = workspace:FindFirstChild(wName)
             if worldInfo then
                 local enemyFolder = worldInfo:FindFirstChild("Enemy")
                 if enemyFolder then
                     for _, mob in ipairs(enemyFolder:GetChildren()) do
-                        if mob:IsA("Model") and targetMobsTable[mob.Name] then
-                            local hrp = mob:FindFirstChild("HumanoidRootPart")
-                            if hrp then
-                                -- Specific check for this game's Attackable attribute
-                                local attackable = mob:GetAttribute("Attackable")
-                                if attackable ~= false then
-                                    if attackable == true then return mob end
-                                    
-                                    -- Fallbacks
-                                    local isAlive = false
-                                    local humanoid = mob:FindFirstChild("Humanoid")
-                                    if humanoid then
-                                        if humanoid.Health > 0 then isAlive = true end
-                                    else
-                                        local healthVal = mob:FindFirstChild("Health") or mob:FindFirstChild("health")
-                                        if healthVal and (healthVal:IsA("IntValue") or healthVal:IsA("NumberValue")) then
-                                            if healthVal.Value > 0 then isAlive = true end
+                        if mob:IsA("Model") then
+                            local isPriority = (mob.Name == priorityMobName)
+                            local isSelected = (type(targetMobsTable) == "table" and targetMobsTable[mob.Name])
+                            
+                            if isPriority or isSelected then
+                                local hrp = mob:FindFirstChild("HumanoidRootPart")
+                                if hrp then
+                                    -- Specific check for this game's Attackable attribute
+                                    local attackable = mob:GetAttribute("Attackable")
+                                    if attackable ~= false then
+                                        local isAlive = false
+                                        if attackable == true then 
+                                            isAlive = true 
+                                        else
+                                            -- Fallbacks
+                                            local humanoid = mob:FindFirstChild("Humanoid")
+                                            if humanoid then
+                                                if humanoid.Health > 0 then isAlive = true end
+                                            else
+                                                local healthVal = mob:FindFirstChild("Health") or mob:FindFirstChild("health")
+                                                if healthVal and (healthVal:IsA("IntValue") or healthVal:IsA("NumberValue")) then
+                                                    if healthVal.Value > 0 then isAlive = true end
+                                                end
+                                            end
                                         end
-                                    end
-                                    if isAlive then
-                                        return mob
+                                        if isAlive then
+                                            if isPriority then
+                                                return mob
+                                            elseif not fallbackMob then
+                                                fallbackMob = mob
+                                            end
+                                        end
                                     end
                                 end
                             end
@@ -196,7 +222,7 @@ do
                 end
             end
         end
-        return nil
+        return fallbackMob
     end
 
     -- Confirms whether our cached mob is still valid and alive
