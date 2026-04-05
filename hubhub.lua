@@ -658,7 +658,7 @@ do
             -- 3. In-Game Custom AFK Bypass (Fires hardware input every 5 minutes)
             task.spawn(function()
                 while antiAfkLoopRunning do
-                    task.wait(300) -- Trigger every 5 minutes
+                    task.wait(60) -- Trigger every 60 seconds (much more aggressively)
                     if antiAfkLoopRunning then
                         pcall(function()
                             -- Simulate a realistic meaningless keypress (F15) to reset custom game AFK timers
@@ -671,10 +671,16 @@ do
                             VirtualInputManager:SendMouseMoveEvent(pos.X + 2, pos.Y + 2, game)
                             task.wait(0.1)
                             VirtualInputManager:SendMouseMoveEvent(pos.X, pos.Y, game)
+                            
+                            -- Force Character Physics update (bypasses velocity/position trackers)
+                            local char = game.Players.LocalPlayer.Character
+                            if char then
+                                local hum = char:FindFirstChild("Humanoid")
+                                if hum then
+                                    hum.Jump = true
+                                end
+                            end
                         end)
-                        
-                        -- Optional: Uncomment if you want to be notified
-                        -- Fluent:Notify({Title = "Anti-AFK", Content = "Triggered active presence to bypass custom game AFK.", Duration = 3})
                     end
                 end
             end)
