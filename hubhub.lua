@@ -1,12 +1,646 @@
---[[
- .____                  ________ ___.    _____                           __                
- |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
- |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
- |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
- |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
-         \/          \/         \/    \/                \/     \/     \/                   
-          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
-]]--
+local Window = Fluent:CreateWindow({
+    Title = "Hubhub",
+    SubTitle = "by biaw",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, 
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl 
+})
 
-local v0=loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))();local v1=loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))();local v2=loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))();local v3=v0:CreateWindow({Title="Hubhub",SubTitle="by biaw",TabWidth=160,Size=UDim2.fromOffset(1462 -882 ,150 + 310 ),Acrylic=true,Theme="Dark",MinimizeKey=Enum.KeyCode.LeftControl});local v4={Main=v3:AddTab({Title="AutoFarm",Icon="home"}),Raid=v3:AddTab({Title="Raid",Icon="swords"}),Settings=v3:AddTab({Title="Settings",Icon="settings"})};local v5=v0.Options;do v0:Notify({Title="Hubhub Loaded",Content="by biaw",Duration=23 -18 });v4.Main:AddParagraph({Title="Notice",Content="Be sure to equip your weapon before using these features."});local v6=false;local v7;local function v8(v43) local v44=0;while true do if (v44==(0 + 0)) then v6=v43;if v43 then task.spawn(function() local v120=0 + 0 ;local v121;local v122;while true do if (v120==0) then v121=game:GetService("ReplicatedStorage"):WaitForChild("Remotes");v122=v121:WaitForChild("Clicked");v120=1;end if (v120==1) then v7=game:GetService("RunService").Heartbeat:Connect(function() if v6 then v122:FireServer();end end);break;end end end);elseif v7 then v7:Disconnect();v7=nil;end break;end end end local v9=v4.Main:AddToggle("AutoClick",{Title="Auto Click",Default=false});v9:OnChanged(function() v8(v5.AutoClick.Value);end);local v10=false;local v11=game.Players.LocalPlayer;local v12={"All Worlds","World1","World2","World3","World4","World5"};local v13=v4.Main:AddDropdown("SelectedWorld",{Title="Select Target World",Values=v12,Multi=false,Default=1});local v14=v4.Main:AddDropdown("SelectedMob",{Title="Select Target Mob",Values={"None"},Multi=false,Default=449 -(10 + 438) });local function v15(v45) local v46=0 + 0 ;local v47;local v48;local v49;while true do if (v46==1) then v49=nil;function v49(v98) local v99=workspace:FindFirstChild(v98);if v99 then local v123=0 -0 ;local v124;while true do if (v123==(0 + 0)) then v124=v99:FindFirstChild("Enemy");if v124 then for v152,v153 in ipairs(v124:GetChildren()) do if (v153:IsA("Model") and  not v48[v153.Name]) then local v160=1180 -(1123 + 57) ;while true do if ((0 + 0)==v160) then v48[v153.Name]=true;table.insert(v47,v153.Name);break;end end end end end break;end end end end v46=2;end if (v46==(256 -(163 + 91))) then if (v45=="All Worlds") then for v125=1931 -(1869 + 61) ,5 do v49("World"   .. v125 );end else v49(v45);end if ( #v47>0) then local v113=0 + 0 ;while true do if (v113==(0 -0)) then v14:SetValues(v47);v14:SetValue(v47[1 -0 ]);break;end end else local v114=0 + 0 ;while true do if (v114==0) then v14:SetValues({"None"});v14:SetValue("None");break;end end end break;end if (v46==(0 -0)) then v47={};v48={};v46=1 + 0 ;end end end v13:OnChanged(function(v50) v15(v50);end);v4.Main:AddButton({Title="Refresh Mob List",Description="Updates the mob list for the selected world.",Callback=function() v15(v5.SelectedWorld.Value);end});task.spawn(function() v15(v12[1475 -(1329 + 145) ]);end);local function v16() local v51=v5.SelectedWorld.Value;local v52=v5.SelectedMob.Value;if ( not v51 or (v52=="None") or (v52=="")) then return nil;end local v53={};if (v51=="All Worlds") then v53={"World1","World2","World3","World4","World5"};else table.insert(v53,v51);end for v82,v83 in ipairs(v53) do local v84=0;local v85;while true do if (v84==0) then v85=workspace:FindFirstChild(v83);if v85 then local v126=718 -(15 + 703) ;local v127;while true do if (v126==0) then v127=v85:FindFirstChild("Enemy");if v127 then for v154,v155 in ipairs(v127:GetChildren()) do if (v155:IsA("Model") and (v155.Name==v52)) then local v161=0 + 0 ;local v162;while true do if (v161==0) then v162=v155:FindFirstChild("HumanoidRootPart");if v162 then local v176=438 -(262 + 176) ;local v177;local v178;while true do if (v176==(1723 -(345 + 1376))) then if v178 then if (v178.Health<=(688 -(198 + 490))) then continue;end else local v182=0 -0 ;local v183;while true do if (v182==(0 -0)) then v183=v155:FindFirstChild("Health") or v155:FindFirstChild("health") ;if (v183 and (v183:IsA("IntValue") or v183:IsA("NumberValue"))) then if (v183.Value<=(1206 -(696 + 510))) then continue;end else continue;end break;end end end return v155;end if (v176==(1 -0)) then if (v177==true) then return v155;end v178=v155:FindFirstChild("Humanoid");v176=1264 -(1091 + 171) ;end if ((0 + 0)==v176) then v177=v155:GetAttribute("Attackable");if (v177==false) then continue;end v176=1;end end end break;end end end end end break;end end end break;end end end return nil;end local function v17(v54) local v55=0 -0 ;local v56;local v57;local v58;while true do if (v55==(0 -0)) then if ( not v54 or  not v54.Parent) then return false;end v56=v54:FindFirstChild("HumanoidRootPart");v55=375 -(123 + 251) ;end if (v55==(4 -3)) then if  not v56 then return false;end v57=v54:GetAttribute("Attackable");v55=700 -(208 + 490) ;end if (v55==(1 + 2)) then v58=v54:FindFirstChild("Humanoid");if v58 then if (v58.Health<=(0 + 0)) then return false;end else local v115=836 -(660 + 176) ;local v116;while true do if (v115==(0 + 0)) then v116=v54:FindFirstChild("Health") or v54:FindFirstChild("health") ;if (v116 and (v116:IsA("IntValue") or v116:IsA("NumberValue"))) then if (v116.Value<=(202 -(14 + 188))) then return false;end else return false;end break;end end end v55=679 -(534 + 141) ;end if (v55==2) then if (v57==false) then return false;end if (v57==true) then return true;end v55=2 + 1 ;end if (v55==(4 + 0)) then return true;end end end local v18=nil;v4.Raid:AddButton({Title="Set Safe Return Position",Description="Click this to lock your world position. The script will always teleport you back here after a Raid.",Callback=function() local v59=0 + 0 ;local v60;while true do if (v59==0) then v60=v11.Character;if (v60 and v60:FindFirstChild("HumanoidRootPart")) then v18=v60.HumanoidRootPart.CFrame;v0:Notify({Title="Position Saved",Content="Successfully locked return coordinate.",Duration=6 -3 });end break;end end end});local v19=false;local function v20() pcall(function() local v86=0 -0 ;local v87;while true do if (v86==(0 -0)) then v87=v11.PlayerGui.Main.HUD.Dungeon;if (v87 and v87.Visible) then return true;end break;end end end);local v61=workspace:FindFirstChild("TowerRaid");if v61 then for v91,v92 in ipairs(v61:GetChildren()) do if (v92:FindFirstChild("Enemy") and ( #v92.Enemy:GetChildren()>(0 + 0))) then return true;end end end return false;end local function v21(v62) local v63=0;while true do if (v63==(0 + 0)) then v10=v62;if v62 then task.spawn(function() local v128=0;local v129;while true do if (v128==(396 -(115 + 281))) then v129=nil;while v10 do local v142=0 -0 ;local v143;while true do if (v142==(1 + 0)) then task.wait();break;end if (v142==(0 -0)) then v143=v11.Character;if (v143 and v143:FindFirstChild("HumanoidRootPart")) then local v165=0 -0 ;local v166;local v167;while true do if (v165==(867 -(550 + 317))) then v166=v20();v167=v5.RaidFarm and v5.RaidFarm.Value ;v165=1 -0 ;end if (v165==(1 -0)) then if v166 then if  not v19 then v19=true;end elseif v19 then if v18 then v143.HumanoidRootPart.CFrame=v18;end v19=false;task.wait(0.5 -0 );else local v179=0;while true do if (v179==(285 -(134 + 151))) then if ( not v129 or  not v129.Parent or (v129.Name~=v5.SelectedMob.Value) or  not v17(v129)) then v129=v16();end if v129 then local v185=v129:FindFirstChild("HumanoidRootPart");if v185 then v143.HumanoidRootPart.CFrame=v185.CFrame;end end break;end end end break;end end end v142=1666 -(970 + 695) ;end end end break;end end end);end break;end end end local v22=v4.Main:AddToggle("AutoFarm",{Title="Auto Farm Mobs",Default=false});v22:OnChanged(function() v21(v5.AutoFarm.Value);end);local v23=false;local function v24() local v64=workspace:FindFirstChild("TowerRaid");if v64 then for v93,v94 in ipairs(v64:GetChildren()) do local v95=0 -0 ;local v96;while true do if ((1990 -(582 + 1408))==v95) then v96=v94:FindFirstChild("Enemy");if v96 then for v139,v140 in ipairs(v96:GetChildren()) do if v140:IsA("Model") then local v150=0 -0 ;local v151;while true do if (0==v150) then v151=v140:FindFirstChild("HumanoidRootPart");if v151 then local v169=v140:GetAttribute("Attackable");if (v169==false) then continue;end if (v169==true) then return v140;end local v170=v140:FindFirstChild("Humanoid");if v170 then if (v170.Health<=(0 -0)) then continue;end else local v174=0;local v175;while true do if (v174==(0 -0)) then v175=v140:FindFirstChild("Health") or v140:FindFirstChild("health") ;if (v175 and (v175:IsA("IntValue") or v175:IsA("NumberValue"))) then if (v175.Value<=(1824 -(1195 + 629))) then continue;end else continue;end break;end end end return v140;end break;end end end end end break;end end end end return nil;end local function v25(v65) local v66=0;while true do if (v66==0) then v23=v65;if v65 then task.spawn(function() local v130=0;local v131;while true do if (v130==(0 -0)) then v131=nil;while v23 do local v144=v11.Character;if (v144 and v144:FindFirstChild("HumanoidRootPart")) then local v156=241 -(187 + 54) ;while true do if (v156==0) then if ( not v131 or  not v131.Parent or  not v17(v131)) then v131=v24();end if v131 then local v172=0;local v173;while true do if (v172==(780 -(162 + 618))) then v173=v131:FindFirstChild("HumanoidRootPart");if v173 then v144.HumanoidRootPart.CFrame=v173.CFrame;end break;end end end break;end end end task.wait();end break;end end end);end break;end end end local v26=v4.Raid:AddToggle("RaidFarm",{Title="Auto Farm Tower Raid",Default=false});v26:OnChanged(function() v25(v5.RaidFarm.Value);end);local v27=false;local function v28(v67) local v68=0;while true do if (v68==(0 + 0)) then v27=v67;if v67 then task.spawn(function() local v132=game:GetService("ReplicatedStorage"):WaitForChild("Remotes");local v133=v132:WaitForChild("JoinTowerRaid");while v27 do local v137=0 + 0 ;while true do if (v137==0) then if v133:IsA("RemoteEvent") then v133:FireServer();elseif v133:IsA("RemoteFunction") then pcall(function() v133:InvokeServer();end);end task.wait(21 -11 );break;end end end end);end break;end end end local v29=v4.Raid:AddToggle("AutoJoinTower",{Title="Auto Join Tower Raid",Default=false});v29:OnChanged(function() v28(v5.AutoJoinTower.Value);end);local v30=v4.Raid:AddParagraph({Title="Tower Raid Information",Content="Calculating..."});task.spawn(function() local v69=0 -0 ;local v70;while true do if (v69==(0 + 0)) then v70=v11:WaitForChild("PlayerGui");while true do local v101=os.date("!*t");local v102=((v101.min<(1666 -(1373 + 263))) and 30) or (1060 -(451 + 549)) ;local v103=(v102-v101.min) -(1 + 0) ;local v104=(93 -33) -v101.sec ;if (v104==(100 -40)) then local v134=1384 -(746 + 638) ;while true do if (v134==(0 + 0)) then v103=v103 + (1 -0) ;v104=341 -(218 + 123) ;break;end end end local v105=string.format("%02d:%02d",v103,v104);local v106="Dungeon Inactive";pcall(function() local v118=1581 -(1535 + 46) ;local v119;while true do if (v118==(0 + 0)) then v119=v70.Main.HUD.Dungeon.RaidsCountdown.StartTimerFrame.Info.Time;if (v119 and v119.Text) then v106=v119.Text;end break;end end end);v30:SetDesc("Predicted Next Global Raid: "   .. v105   .. "\n"   .. "Current Wave Timer: "   .. v106 );task.wait(1 + 0 );end break;end end end);local v31=false;local function v32() local v71=0;local v72;local v73;local v74;while true do if (v71==0) then v72=workspace:FindFirstChild("Chests");if  not v72 then return;end v71=1;end if (v71==(562 -(306 + 254))) then if  not v74 then return;end for v107,v108 in ipairs(v72:GetChildren()) do local v109=0 + 0 ;local v110;local v111;while true do if (v109==1) then if (v108.Name=="GroupRewardsChest") then continue;end v110=false;v109=3 -1 ;end if (v109==(1469 -(899 + 568))) then v111=v108:FindFirstChild("BillboardGui",true);if v111 then for v146,v147 in ipairs(v111:GetDescendants()) do if (v147:IsA("TextLabel") and v147.Text) then if string.match(v147.Text,"%d+:%d+") then v110=true;break;end end end end v109=2 + 1 ;end if (v109==0) then if (v108.Name=="VIPChest") then continue;end if string.match(string.lower(v108.Name),"vip") then continue;end v109=2 -1 ;end if ((606 -(268 + 335))==v109) then if  not v110 then local v141=false;if v108:IsA("BasePart") then if v108:FindFirstChildWhichIsA("TouchTransmitter") then local v158=290 -(60 + 230) ;while true do if (v158==(573 -(426 + 146))) then v141=true;break;end if (v158==(0 + 0)) then firetouchinterest(v74,v108,1456 -(282 + 1174) );firetouchinterest(v74,v108,812 -(569 + 242) );v158=1;end end end elseif (v108:IsA("Model") or v108:IsA("Folder")) then for v163,v164 in ipairs(v108:GetDescendants()) do if (v164:IsA("BasePart") and v164:FindFirstChildWhichIsA("TouchTransmitter")) then firetouchinterest(v74,v164,0);firetouchinterest(v74,v164,1);v141=true;break;end end end if v141 then task.wait(0.1 -0 );end end break;end end end break;end if (v71==(1 + 0)) then v73=v11.Character;v74=v73 and v73:FindFirstChild("HumanoidRootPart") ;v71=1026 -(706 + 318) ;end end end local function v33(v75) local v76=1251 -(721 + 530) ;while true do if (v76==0) then v31=v75;if v75 then task.spawn(function() while v31 do if (type(firetouchinterest)=="function") then v32();else v0:Notify({Title="Error",Content="Your executor lacks firetouchinterest support!",Duration=3});v31=false;end task.wait(1);end end);end break;end end end local v34=v4.Main:AddToggle("AutoChest",{Title="Auto Collect Chests",Default=false});v34:OnChanged(function() v33(v5.AutoChest.Value);end);local v35=false;local v36=v4.Main:AddDropdown("SelectedRoll",{Title="Select Power to Roll",Values={"None"},Multi=false,Default=1});task.spawn(function() local v77=game:GetService("ReplicatedStorage"):WaitForChild("Remotes");local v78={};for v88,v89 in ipairs(v77:GetChildren()) do if string.match(v89.Name,"^Roll") then table.insert(v78,v89.Name);end end if ( #v78>(1271 -(945 + 326))) then table.sort(v78);v36:SetValues(v78);v36:SetValue(v78[1]);end end);local function v37(v79) local v80=0;while true do if (v80==(0 -0)) then v35=v79;if v79 then task.spawn(function() local v135=0 + 0 ;local v136;while true do if (v135==(700 -(271 + 429))) then v136=game:GetService("ReplicatedStorage"):WaitForChild("Remotes");while v35 do local v148=0 + 0 ;local v149;while true do if (v148==(1501 -(1408 + 92))) then task.wait(1086.1 -(461 + 625) );break;end if (v148==(1288 -(993 + 295))) then v149=v5.SelectedRoll.Value;if (v149 and (v149~="None")) then local v168=v136:FindFirstChild(v149) or workspace:FindFirstChild(v149,true) ;if v168 then if v168:IsA("RemoteEvent") then v168:FireServer();elseif v168:IsA("RemoteFunction") then pcall(function() v168:InvokeServer();end);end end end v148=1 + 0 ;end end end break;end end end);end break;end end end local v38=v4.Main:AddToggle("AutoRoll",{Title="Auto Roll (Instant)",Default=false});v38:OnChanged(function() v37(v5.AutoRoll.Value);end);local v39;local v40=game:GetService("VirtualUser");local function v41(v81) if v81 then if  not v39 then v39=v11.Idled:Connect(function() v40:CaptureController();v40:ClickButton2(Vector2.new());v0:Notify({Title="Anti-AFK",Content="Roblox tried kicking you but Anti-AFK prevented it!",Duration=5});end);end elseif v39 then local v112=1171 -(418 + 753) ;while true do if ((0 + 0)==v112) then v39:Disconnect();v39=nil;break;end end end end local v42=v4.Main:AddToggle("AntiAfk",{Title="Anti-AFK",Default=true});v42:OnChanged(function() v41(v5.AntiAfk.Value);end);v41(true);end v1:SetLibrary(v0);v2:SetLibrary(v0);v1:IgnoreThemeSettings();v1:SetIgnoreIndexes({});v2:SetFolder("FluentScriptHub");v1:SetFolder("FluentScriptHub/specific-game");v2:BuildInterfaceSection(v4.Settings);v1:BuildConfigSection(v4.Settings);v3:SelectTab(1 + 0 );v1:LoadAutoloadConfig();
+local Tabs = {
+    Main = Window:AddTab({ Title = "AutoFarm", Icon = "home" }),
+    Raid = Window:AddTab({ Title = "Raid", Icon = "swords" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+do
+    Fluent:Notify({
+        Title = "Hubhub Loaded",
+        Content = "by biaw",
+        Duration = 5 
+    })
+
+    Tabs.Main:AddParagraph({
+        Title = "Notice",
+        Content = "Be sure to equip your weapon before using these features."
+    })
+
+    -- =====================================
+    -- Auto Clicker
+    -- =====================================
+    local clickLoopActive = false
+    local autoClickConnection
+
+    local function ToggleAutoClick(state)
+        clickLoopActive = state
+        if state then
+            task.spawn(function()
+                -- Wait for remote to exist and store it safely
+                local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+                local remoteClick = remotesFolder:WaitForChild("Clicked")
+                
+                -- Heartbeat is used to click as fast as possible without causing client engine lag
+                autoClickConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if clickLoopActive then
+                        remoteClick:FireServer()
+                    end
+                end)
+            end)
+        else
+            -- Cleanup the connection to save resources
+            if autoClickConnection then
+                autoClickConnection:Disconnect()
+                autoClickConnection = nil
+            end
+        end
+    end
+
+    local AutoClickToggle = Tabs.Main:AddToggle("AutoClick", {Title = "Auto Click", Default = false })
+    AutoClickToggle:OnChanged(function()
+        ToggleAutoClick(Options.AutoClick.Value)
+    end)
+
+
+    -- =====================================
+    -- Auto Farm Mobs
+    -- =====================================
+    local autoFarmRunning = false
+    local Player = game.Players.LocalPlayer
+
+    local worldsList = {"All Worlds", "World1", "World2", "World3", "World4", "World5"}
+    local WorldDropdown = Tabs.Main:AddDropdown("SelectedWorld", {
+        Title = "Select Target World",
+        Values = worldsList,
+        Multi = false,
+        Default = 1,
+    })
+
+    local MobDropdown = Tabs.Main:AddDropdown("SelectedMob", {
+        Title = "Select Target Mob",
+        Values = {"None"},
+        Multi = false,
+        Default = 1,
+    })
+
+    local function UpdateMobList(worldName)
+        local mobNames = {}
+        local found = {}
+
+        local function scanWorld(wName)
+            local worldInfo = workspace:FindFirstChild(wName)
+            if worldInfo then
+                local enemyFolder = worldInfo:FindFirstChild("Enemy")
+                if enemyFolder then
+                    for _, mob in ipairs(enemyFolder:GetChildren()) do
+                        if mob:IsA("Model") and not found[mob.Name] then
+                            found[mob.Name] = true
+                            table.insert(mobNames, mob.Name)
+                        end
+                    end
+                end
+            end
+        end
+
+        if worldName == "All Worlds" then
+            for i=1, 5 do scanWorld("World"..i) end
+        else
+            scanWorld(worldName)
+        end
+
+        if #mobNames > 0 then
+            MobDropdown:SetValues(mobNames)
+            MobDropdown:SetValue(mobNames[1])
+        else
+            MobDropdown:SetValues({"None"})
+            MobDropdown:SetValue("None")
+        end
+    end
+
+    WorldDropdown:OnChanged(function(Value)
+        UpdateMobList(Value)
+    end)
+
+    Tabs.Main:AddButton({
+        Title = "Refresh Mob List",
+        Description = "Updates the mob list for the selected world.",
+        Callback = function()
+            UpdateMobList(Options.SelectedWorld.Value)
+        end
+    })
+
+    -- Populates the mob list safely on load
+    task.spawn(function()
+        UpdateMobList(worldsList[1])
+    end)
+
+    -- Locates the specific mob selected by the user
+    local function GetNextMob()
+        local targetWorld = Options.SelectedWorld.Value
+        local targetMob = Options.SelectedMob.Value
+        
+        if not targetWorld or targetMob == "None" or targetMob == "" then return nil end
+        
+        local worldsToScan = {}
+        if targetWorld == "All Worlds" then
+            worldsToScan = {"World1", "World2", "World3", "World4", "World5"}
+        else
+            table.insert(worldsToScan, targetWorld)
+        end
+
+        for _, wName in ipairs(worldsToScan) do
+            local worldInfo = workspace:FindFirstChild(wName)
+            if worldInfo then
+                local enemyFolder = worldInfo:FindFirstChild("Enemy")
+                if enemyFolder then
+                    for _, mob in ipairs(enemyFolder:GetChildren()) do
+                        if mob:IsA("Model") and mob.Name == targetMob then
+                            local hrp = mob:FindFirstChild("HumanoidRootPart")
+                            if hrp then
+                                -- Specific check for this game's Attackable attribute
+                                local attackable = mob:GetAttribute("Attackable")
+                                if attackable ~= false then
+                                    if attackable == true then return mob end
+                                    
+                                    -- Fallbacks
+                                    local isAlive = false
+                                    local humanoid = mob:FindFirstChild("Humanoid")
+                                    if humanoid then
+                                        if humanoid.Health > 0 then isAlive = true end
+                                    else
+                                        local healthVal = mob:FindFirstChild("Health") or mob:FindFirstChild("health")
+                                        if healthVal and (healthVal:IsA("IntValue") or healthVal:IsA("NumberValue")) then
+                                            if healthVal.Value > 0 then isAlive = true end
+                                        end
+                                    end
+                                    if isAlive then
+                                        return mob
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        return nil
+    end
+
+    -- Confirms whether our cached mob is still valid and alive
+    local function IsMobAlive(mob)
+        if not mob or not mob.Parent then return false end
+        local hrp = mob:FindFirstChild("HumanoidRootPart")
+        if not hrp then return false end
+        
+        -- Specific check for this game's Attackable attribute
+        local attackable = mob:GetAttribute("Attackable")
+        if attackable == false then return false end
+        if attackable == true then return true end
+
+        local humanoid = mob:FindFirstChild("Humanoid")
+        if humanoid then
+            if humanoid.Health <= 0 then return false end
+        else
+            local healthVal = mob:FindFirstChild("Health") or mob:FindFirstChild("health")
+            if healthVal and (healthVal:IsA("IntValue") or healthVal:IsA("NumberValue")) then
+                if healthVal.Value <= 0 then return false end
+            else
+                return false
+            end
+        end
+        return true
+    end
+
+    local safeWorldCF = nil
+    Tabs.Raid:AddButton({
+        Title = "Set Safe Return Position",
+        Description = "Click this to lock your world position. The script will always teleport you back here after a Raid.",
+        Callback = function()
+            local char = Player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                safeWorldCF = char.HumanoidRootPart.CFrame
+                Fluent:Notify({Title="Position Saved", Content="Successfully locked return coordinate.", Duration=3})
+            end
+        end
+    })
+
+    local wasInDungeon = false
+    
+    local function IsInDungeon()
+        -- First check if the Dungeon UI is actively visible on the screen
+        pcall(function()
+            local dungeonUI = Player.PlayerGui.Main.HUD.Dungeon
+            if dungeonUI and dungeonUI.Visible then
+                return true
+            end
+        end)
+        
+        -- Fallback check: Are there any enemy mobs inside the TowerRaid folder?
+        local towerRaid = workspace:FindFirstChild("TowerRaid")
+        if towerRaid then
+            for _, rFolder in ipairs(towerRaid:GetChildren()) do
+                if rFolder:FindFirstChild("Enemy") and #rFolder.Enemy:GetChildren() > 0 then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    local function ToggleAutoFarm(state)
+        autoFarmRunning = state
+        if state then
+            task.spawn(function()
+                local currentMob = nil
+                while autoFarmRunning do
+                    local character = Player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") then
+                        
+                        local currentlyInDungeon = IsInDungeon()
+                        local raidFarmToggled = Options.RaidFarm and Options.RaidFarm.Value
+                        
+                        if currentlyInDungeon then
+                            -- We are actively inside a raid/dungeon! Pause World Farm.
+                            if not wasInDungeon then
+                                wasInDungeon = true
+                            end
+                        else
+                            -- We are NOT in a dungeon.
+                            if wasInDungeon then
+                                -- We just finished or left the dungeon! Teleport back to where we were farming.
+                                if safeWorldCF then
+                                    character.HumanoidRootPart.CFrame = safeWorldCF
+                                end
+                                wasInDungeon = false
+                                task.wait(0.5) -- Short delay to allow map chunks to load
+                            else
+                                -- Normal World Farming Sequence
+                                -- Drop current target if it's dead, missing, or user switched targets
+                                if not currentMob or not currentMob.Parent or currentMob.Name ~= Options.SelectedMob.Value or not IsMobAlive(currentMob) then
+                                    currentMob = GetNextMob()
+                                end
+                                
+                                if currentMob then
+                                    local targetHRP = currentMob:FindFirstChild("HumanoidRootPart")
+                                    if targetHRP then
+                                        -- Teleport to the mob
+                                        character.HumanoidRootPart.CFrame = targetHRP.CFrame
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    -- task.wait() prevents game freezes
+                    task.wait()
+                end
+            end)
+        end
+    end
+
+    local AutoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {Title = "Auto Farm Mobs", Default = false })
+    AutoFarmToggle:OnChanged(function()
+        ToggleAutoFarm(Options.AutoFarm.Value)
+    end)
+
+    -- =====================================
+    -- Auto Farm Tower Raid
+    -- =====================================
+    local raidFarmRunning = false
+
+    local function GetNextRaidMob()
+        local towerRaid = workspace:FindFirstChild("TowerRaid")
+        if towerRaid then
+            for _, raidFolder in ipairs(towerRaid:GetChildren()) do
+                local enemyFolder = raidFolder:FindFirstChild("Enemy")
+                if enemyFolder then
+                    for _, mob in ipairs(enemyFolder:GetChildren()) do
+                        if mob:IsA("Model") then
+                            local hrp = mob:FindFirstChild("HumanoidRootPart")
+                            if hrp then
+                                local attackable = mob:GetAttribute("Attackable")
+                                if attackable ~= false then
+                                    if attackable == true then return mob end
+                                    
+                                    local isAlive = false
+                                    local humanoid = mob:FindFirstChild("Humanoid")
+                                    if humanoid then
+                                        if humanoid.Health > 0 then isAlive = true end
+                                    else
+                                        local healthVal = mob:FindFirstChild("Health") or mob:FindFirstChild("health")
+                                        if healthVal and (healthVal:IsA("IntValue") or healthVal:IsA("NumberValue")) then
+                                            if healthVal.Value > 0 then isAlive = true end
+                                        end
+                                    end
+                                    if isAlive then
+                                        return mob
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        return nil
+    end
+
+    local function ToggleRaidFarm(state)
+        raidFarmRunning = state
+        if state then
+            task.spawn(function()
+                local currentRaidMob = nil
+                while raidFarmRunning do
+                    local character = Player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") then
+                        if not currentRaidMob or not currentRaidMob.Parent or not IsMobAlive(currentRaidMob) then
+                            currentRaidMob = GetNextRaidMob()
+                        end
+                        
+                        if currentRaidMob then
+                            local targetHRP = currentRaidMob:FindFirstChild("HumanoidRootPart")
+                            if targetHRP then
+                                character.HumanoidRootPart.CFrame = targetHRP.CFrame
+                            end
+                        end
+                    end
+                    task.wait()
+                end
+            end)
+        end
+    end
+
+    local RaidFarmToggle = Tabs.Raid:AddToggle("RaidFarm", {Title = "Auto Farm Tower Raid", Default = false })
+    RaidFarmToggle:OnChanged(function()
+        ToggleRaidFarm(Options.RaidFarm.Value)
+    end)
+
+    -- =====================================
+    -- Auto Join Tower Raid
+    -- =====================================
+    local autoJoinTowerRunning = false
+
+    local function ToggleAutoJoinTower(state)
+        autoJoinTowerRunning = state
+        if state then
+            task.spawn(function()
+                local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+                local joinTowerRaid = remotesFolder:WaitForChild("JoinTowerRaid")
+                while autoJoinTowerRunning do
+                    if joinTowerRaid:IsA("RemoteEvent") then
+                        joinTowerRaid:FireServer()
+                    elseif joinTowerRaid:IsA("RemoteFunction") then
+                        pcall(function() joinTowerRaid:InvokeServer() end)
+                    end
+                    task.wait(10) -- Safely attempts an auto-join every 10 seconds
+                end
+            end)
+        end
+    end
+
+    local AutoJoinTowerToggle = Tabs.Raid:AddToggle("AutoJoinTower", {Title = "Auto Join Tower Raid", Default = false })
+    AutoJoinTowerToggle:OnChanged(function()
+        ToggleAutoJoinTower(Options.AutoJoinTower.Value)
+    end)
+
+    local RaidTimerLabel = Tabs.Raid:AddParagraph({
+        Title = "Tower Raid Information",
+        Content = "Calculating..."
+    })
+
+    task.spawn(function()
+        local playerGui = Player:WaitForChild("PlayerGui")
+        while true do
+            -- 1. Calculate the Global 30-Minute Real World Timer
+            local dateInfo = os.date("!*t")
+            local targetMin = (dateInfo.min < 30) and 30 or 60
+            local minsLeft = targetMin - dateInfo.min - 1
+            local secsLeft = 60 - dateInfo.sec
+            if secsLeft == 60 then
+                minsLeft = minsLeft + 1
+                secsLeft = 0
+            end
+            local predictedTimer = string.format("%02d:%02d", minsLeft, secsLeft)
+
+            -- 2. Read the local active wave timer if we are inside
+            local waveStatus = "Dungeon Inactive"
+            pcall(function()
+                local timeLabel = playerGui.Main.HUD.Dungeon.RaidsCountdown.StartTimerFrame.Info.Time
+                if timeLabel and timeLabel.Text then
+                    waveStatus = timeLabel.Text
+                end
+            end)
+
+            -- 3. Update UI
+            RaidTimerLabel:SetDesc(
+                "Predicted Next Global Raid: " .. predictedTimer .. "\n" ..
+                "Current Wave Timer: " .. waveStatus
+            )
+            
+            task.wait(1)
+        end
+    end)
+
+    -- =====================================
+    -- Auto Collect Chests
+    -- =====================================
+    local autoChestRunning = false
+
+    local function CollectChests()
+        local chestsFolder = workspace:FindFirstChild("Chests")
+        if not chestsFolder then return end
+
+        local character = Player.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        for _, chest in ipairs(chestsFolder:GetChildren()) do
+            -- Ignore the VIP Chest specified by user
+            local chestName = chest.Name
+            local lowerName = string.lower(chestName)
+            if chestName ~= "VIPChest" and chestName ~= "GroupRewardsChest" and not string.match(lowerName, "vip") then
+                
+                -- Detect if the chest has a visible Timer indicating it's on cooldown
+                local isOnCooldown = false
+                local billboard = chest:FindFirstChild("BillboardGui", true)
+                if billboard then
+                    for _, descendant in ipairs(billboard:GetDescendants()) do
+                        if descendant:IsA("TextLabel") and descendant.Text then
+                            -- Check for time format pattern: Digit(s) : Digit(s)
+                            if string.match(descendant.Text, "%d+:%d+") then
+                                isOnCooldown = true
+                                break
+                            end
+                        end
+                    end
+                end
+                
+                if not isOnCooldown then
+                    local touched = false
+                    if chest:IsA("BasePart") then
+                        if chest:FindFirstChildWhichIsA("TouchTransmitter") then
+                            firetouchinterest(hrp, chest, 0)
+                            firetouchinterest(hrp, chest, 1)
+                            touched = true
+                        end
+                    elseif chest:IsA("Model") or chest:IsA("Folder") then
+                        for _, part in ipairs(chest:GetDescendants()) do
+                            if part:IsA("BasePart") and part:FindFirstChildWhichIsA("TouchTransmitter") then
+                                firetouchinterest(hrp, part, 0)
+                                firetouchinterest(hrp, part, 1)
+                                touched = true
+                                break -- Only touch once per chest model to save network resources!
+                            end
+                        end
+                    end
+                    
+                    -- If we successfully submitted a touch packet, wait 0.1s before touching the 
+                    -- next chest so the Roblox network thread doesn't completely freeze handling 500 packets in 1 frame
+                    if touched then
+                        task.wait(0.1) 
+                    end
+                end
+            end
+        end
+    end
+
+    local function ToggleAutoChest(state)
+        autoChestRunning = state
+        if state then
+            task.spawn(function()
+                while autoChestRunning do
+                    if type(firetouchinterest) == "function" then
+                        CollectChests()
+                    else
+                        Fluent:Notify({
+                            Title = "Error",
+                            Content = "Your executor lacks firetouchinterest support!",
+                            Duration = 3
+                        })
+                        autoChestRunning = false
+                    end
+                    task.wait(1)
+                end
+            end)
+        end
+    end
+
+    local AutoChestToggle = Tabs.Main:AddToggle("AutoChest", {Title = "Auto Collect Chests", Default = false })
+    AutoChestToggle:OnChanged(function()
+        ToggleAutoChest(Options.AutoChest.Value)
+    end)
+
+    -- =====================================
+    -- Universal Auto Roll System
+    -- =====================================
+    local autoRollRunning = false
+
+    local RollDropdown = Tabs.Main:AddDropdown("SelectedRoll", {
+        Title = "Select Power to Roll",
+        Values = {"None"},
+        Multi = false,
+        Default = 1,
+    })
+
+    -- Dynamically read all Roll remotes so it updates automatically
+    task.spawn(function()
+        local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+        local rollOptions = {}
+        for _, remote in ipairs(remotesFolder:GetChildren()) do
+            if string.match(remote.Name, "^Roll") then
+                table.insert(rollOptions, remote.Name)
+            end
+        end
+        if #rollOptions > 0 then
+            table.sort(rollOptions)
+            RollDropdown:SetValues(rollOptions)
+            RollDropdown:SetValue(rollOptions[1])
+        end
+    end)
+
+    local function ToggleAutoRoll(state)
+        autoRollRunning = state
+        if state then
+            task.spawn(function()
+                local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+                while autoRollRunning do
+                    local targetRoll = Options.SelectedRoll.Value
+                    if targetRoll and targetRoll ~= "None" then
+                        -- Check both ReplicatedStorage and Workspace dynamically just in case
+                        local rollRemote = remotesFolder:FindFirstChild(targetRoll) or workspace:FindFirstChild(targetRoll, true)
+                        
+                        if rollRemote then
+                            if rollRemote:IsA("RemoteEvent") then
+                                rollRemote:FireServer()
+                            elseif rollRemote:IsA("RemoteFunction") then
+                                pcall(function() rollRemote:InvokeServer() end)
+                            end
+                        end
+                    end
+                    task.wait(0.1) -- Fires heavily, skipping anime animations
+                end
+            end)
+        end
+    end
+
+    local AutoRollToggle = Tabs.Main:AddToggle("AutoRoll", {Title = "Auto Roll (Instant)", Default = false })
+    AutoRollToggle:OnChanged(function()
+        ToggleAutoRoll(Options.AutoRoll.Value)
+    end)
+
+    -- =====================================
+    -- Anti-AFK
+    -- =====================================
+    local antiAfkConnection
+    local VirtualUser = game:GetService("VirtualUser")
+
+    local function ToggleAntiAfk(state)
+        if state then
+            if not antiAfkConnection then
+                antiAfkConnection = Player.Idled:Connect(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                    
+                    Fluent:Notify({
+                        Title = "Anti-AFK",
+                        Content = "Roblox tried kicking you but Anti-AFK prevented it!",
+                        Duration = 5
+                    })
+                end)
+            end
+        else
+            if antiAfkConnection then
+                antiAfkConnection:Disconnect()
+                antiAfkConnection = nil
+            end
+        end
+    end
+
+    local AntiAfkToggle = Tabs.Main:AddToggle("AntiAfk", {Title = "Anti-AFK", Default = true })
+    AntiAfkToggle:OnChanged(function()
+        ToggleAntiAfk(Options.AntiAfk.Value)
+    end)
+
+    -- Initialize default state
+    ToggleAntiAfk(true)
+end
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+SaveManager:LoadAutoloadConfig()
