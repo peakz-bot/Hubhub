@@ -633,22 +633,51 @@ do
     -- Anti-AFK
     -- =====================================
     local antiAfkConnection
+    local antiAfkLoopRunning = false
     local VirtualUser = game:GetService("VirtualUser")
+    local VirtualInputManager = game:GetService("VirtualInputManager")
 
     local function ToggleAntiAfk(state)
+        antiAfkLoopRunning = state
         if state then
+            -- 1. Exploit level Idled disable (if executor supports getconnections)
+            pcall(function()
+                for _, connection in ipairs(getconnections(Player.Idled)) do
+                    connection:Disable()
+                end
+            end)
+
+            -- 2. Standard Idled fallback
             if not antiAfkConnection then
                 antiAfkConnection = Player.Idled:Connect(function()
                     VirtualUser:CaptureController()
                     VirtualUser:ClickButton2(Vector2.new())
-                    
-                    Fluent:Notify({
-                        Title = "Anti-AFK",
-                        Content = "Roblox tried kicking you but Anti-AFK prevented it!",
-                        Duration = 5
-                    })
                 end)
             end
+
+            -- 3. In-Game Custom AFK Bypass (Fires hardware input every 5 minutes)
+            task.spawn(function()
+                while antiAfkLoopRunning do
+                    task.wait(300) -- Trigger every 5 minutes
+                    if antiAfkLoopRunning then
+                        pcall(function()
+                            -- Simulate a realistic meaningless keypress (F15) to reset custom game AFK timers
+                            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F15, false, game)
+                            task.wait(0.1)
+                            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F15, false, game)
+                            
+                            -- Spoof a slight mouse movement
+                            local pos = game:GetService("UserInputService"):GetMouseLocation()
+                            VirtualInputManager:SendMouseMoveEvent(pos.X + 2, pos.Y + 2, game)
+                            task.wait(0.1)
+                            VirtualInputManager:SendMouseMoveEvent(pos.X, pos.Y, game)
+                        end)
+                        
+                        -- Optional: Uncomment if you want to be notified
+                        -- Fluent:Notify({Title = "Anti-AFK", Content = "Triggered active presence to bypass custom game AFK.", Duration = 3})
+                    end
+                end
+            end)
         else
             if antiAfkConnection then
                 antiAfkConnection:Disconnect()
