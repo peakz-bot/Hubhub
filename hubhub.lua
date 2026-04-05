@@ -274,12 +274,15 @@ do
             end
         end)
         
-        -- Fallback check: Are there any enemy mobs inside the TowerRaid folder?
-        local towerRaid = workspace:FindFirstChild("TowerRaid")
-        if towerRaid then
-            for _, rFolder in ipairs(towerRaid:GetChildren()) do
-                if rFolder:FindFirstChild("Enemy") and #rFolder.Enemy:GetChildren() > 0 then
-                    return true
+        -- Fallback check: Are there any enemy mobs inside the Raid folders?
+        local raidFolders = {"TowerRaid", "WisteriaRaid"}
+        for _, raidName in ipairs(raidFolders) do
+            local masterRaidFolder = workspace:FindFirstChild(raidName)
+            if masterRaidFolder then
+                for _, rFolder in ipairs(masterRaidFolder:GetChildren()) do
+                    if rFolder:FindFirstChild("Enemy") and #rFolder.Enemy:GetChildren() > 0 then
+                        return true
+                    end
                 end
             end
         end
@@ -350,31 +353,34 @@ do
     local raidFarmRunning = false
 
     local function GetNextRaidMob()
-        local towerRaid = workspace:FindFirstChild("TowerRaid")
-        if towerRaid then
-            for _, raidFolder in ipairs(towerRaid:GetChildren()) do
-                local enemyFolder = raidFolder:FindFirstChild("Enemy")
-                if enemyFolder then
-                    for _, mob in ipairs(enemyFolder:GetChildren()) do
-                        if mob:IsA("Model") then
-                            local hrp = mob:FindFirstChild("HumanoidRootPart")
-                            if hrp then
-                                local attackable = mob:GetAttribute("Attackable")
-                                if attackable ~= false then
-                                    if attackable == true then return mob end
-                                    
-                                    local isAlive = false
-                                    local humanoid = mob:FindFirstChild("Humanoid")
-                                    if humanoid then
-                                        if humanoid.Health > 0 then isAlive = true end
-                                    else
-                                        local healthVal = mob:FindFirstChild("Health") or mob:FindFirstChild("health")
-                                        if healthVal and (healthVal:IsA("IntValue") or healthVal:IsA("NumberValue")) then
-                                            if healthVal.Value > 0 then isAlive = true end
+        local raidFolders = {"TowerRaid", "WisteriaRaid"}
+        for _, raidName in ipairs(raidFolders) do
+            local masterRaidFolder = workspace:FindFirstChild(raidName)
+            if masterRaidFolder then
+                for _, raidFolder in ipairs(masterRaidFolder:GetChildren()) do
+                    local enemyFolder = raidFolder:FindFirstChild("Enemy")
+                    if enemyFolder then
+                        for _, mob in ipairs(enemyFolder:GetChildren()) do
+                            if mob:IsA("Model") then
+                                local hrp = mob:FindFirstChild("HumanoidRootPart")
+                                if hrp then
+                                    local attackable = mob:GetAttribute("Attackable")
+                                    if attackable ~= false then
+                                        if attackable == true then return mob end
+                                        
+                                        local isAlive = false
+                                        local humanoid = mob:FindFirstChild("Humanoid")
+                                        if humanoid then
+                                            if humanoid.Health > 0 then isAlive = true end
+                                        else
+                                            local healthVal = mob:FindFirstChild("Health") or mob:FindFirstChild("health")
+                                            if healthVal and (healthVal:IsA("IntValue") or healthVal:IsA("NumberValue")) then
+                                                if healthVal.Value > 0 then isAlive = true end
+                                            end
                                         end
-                                    end
-                                    if isAlive then
-                                        return mob
+                                        if isAlive then
+                                            return mob
+                                        end
                                     end
                                 end
                             end
@@ -411,7 +417,7 @@ do
         end
     end
 
-    local RaidFarmToggle = Tabs.Raid:AddToggle("RaidFarm", {Title = "Auto Farm Tower Raid", Default = false })
+    local RaidFarmToggle = Tabs.Raid:AddToggle("RaidFarm", {Title = "Auto Farm Raid (Tower/W4)", Default = false })
     RaidFarmToggle:OnChanged(function()
         ToggleRaidFarm(Options.RaidFarm.Value)
     end)
