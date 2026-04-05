@@ -85,8 +85,8 @@ do
     local MobDropdown = Tabs.Main:AddDropdown("SelectedMob", {
         Title = "Select Target Mob",
         Values = {"None"},
-        Multi = false,
-        Default = 1,
+        Multi = true,
+        Default = {},
     })
 
     local function UpdateMobList(worldName)
@@ -116,10 +116,10 @@ do
 
         if #mobNames > 0 then
             MobDropdown:SetValues(mobNames)
-            MobDropdown:SetValue(mobNames[1])
+            MobDropdown:SetValue({[mobNames[1]] = true})
         else
             MobDropdown:SetValues({"None"})
-            MobDropdown:SetValue("None")
+            MobDropdown:SetValue({})
         end
     end
 
@@ -143,9 +143,16 @@ do
     -- Locates the specific mob selected by the user
     local function GetNextMob()
         local targetWorld = Options.SelectedWorld.Value
-        local targetMob = Options.SelectedMob.Value
+        local targetMobsTable = Options.SelectedMob.Value
         
-        if not targetWorld or targetMob == "None" or targetMob == "" then return nil end
+        local hasTarget = false
+        if type(targetMobsTable) == "table" then
+            for k,v in pairs(targetMobsTable) do
+                if v and k ~= "None" then hasTarget = true; break end
+            end
+        end
+
+        if not targetWorld or not hasTarget then return nil end
         
         local worldsToScan = {}
         if targetWorld == "All Worlds" then
@@ -160,7 +167,7 @@ do
                 local enemyFolder = worldInfo:FindFirstChild("Enemy")
                 if enemyFolder then
                     for _, mob in ipairs(enemyFolder:GetChildren()) do
-                        if mob:IsA("Model") and mob.Name == targetMob then
+                        if mob:IsA("Model") and targetMobsTable[mob.Name] then
                             local hrp = mob:FindFirstChild("HumanoidRootPart")
                             if hrp then
                                 -- Specific check for this game's Attackable attribute
@@ -282,7 +289,10 @@ do
                             else
                                 -- Normal World Farming Sequence
                                 -- Drop current target if it's dead, missing, or user switched targets
-                                if not currentMob or not currentMob.Parent or currentMob.Name ~= Options.SelectedMob.Value or not IsMobAlive(currentMob) then
+                                local targetMobsTable = Options.SelectedMob.Value
+                                local isCurrentValid = type(targetMobsTable) == "table" and currentMob and targetMobsTable[currentMob.Name]
+
+                                if not currentMob or not currentMob.Parent or not isCurrentValid or not IsMobAlive(currentMob) then
                                     currentMob = GetNextMob()
                                 end
                                 
