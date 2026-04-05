@@ -639,57 +639,31 @@ do
     -- Anti-AFK
     -- =====================================
     local antiAfkConnection
-    local antiAfkLoopRunning = false
     local VirtualUser = game:GetService("VirtualUser")
-    local VirtualInputManager = game:GetService("VirtualInputManager")
 
     local function ToggleAntiAfk(state)
-        antiAfkLoopRunning = state
         if state then
-            -- 1. Exploit level Idled disable (if executor supports getconnections)
-            pcall(function()
-                for _, connection in ipairs(getconnections(Player.Idled)) do
-                    connection:Disable()
-                end
-            end)
-
-            -- 2. Standard Idled fallback
-            if not antiAfkConnection then
-                antiAfkConnection = Player.Idled:Connect(function()
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton2(Vector2.new())
+            -- Infinite Yield Anti-AFK Method
+            if getconnections then
+                pcall(function()
+                    for _, connection in pairs(getconnections(Player.Idled)) do
+                        if connection["Disable"] then
+                            connection:Disable()
+                        elseif connection["Disconnect"] then
+                            connection:Disconnect()
+                        end
+                    end
                 end)
             end
 
-            -- 3. In-Game Custom AFK Bypass (Fires hardware input every 5 minutes)
-            task.spawn(function()
-                while antiAfkLoopRunning do
-                    task.wait(60) -- Trigger every 60 seconds (much more aggressively)
-                    if antiAfkLoopRunning then
-                        pcall(function()
-                            -- Simulate a realistic meaningless keypress (F15) to reset custom game AFK timers
-                            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F15, false, game)
-                            task.wait(0.1)
-                            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F15, false, game)
-                            
-                            -- Spoof a slight mouse movement
-                            local pos = game:GetService("UserInputService"):GetMouseLocation()
-                            VirtualInputManager:SendMouseMoveEvent(pos.X + 2, pos.Y + 2, game)
-                            task.wait(0.1)
-                            VirtualInputManager:SendMouseMoveEvent(pos.X, pos.Y, game)
-                            
-                            -- Force Character Physics update (bypasses velocity/position trackers)
-                            local char = game.Players.LocalPlayer.Character
-                            if char then
-                                local hum = char:FindFirstChild("Humanoid")
-                                if hum then
-                                    hum.Jump = true
-                                end
-                            end
-                        end)
-                    end
-                end
-            end)
+            if not antiAfkConnection then
+                antiAfkConnection = Player.Idled:Connect(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                    task.wait(1)
+                    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                end)
+            end
         else
             if antiAfkConnection then
                 antiAfkConnection:Disconnect()
