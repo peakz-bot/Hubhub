@@ -450,6 +450,321 @@ do
         ToggleAutoJoinTower(Options.AutoJoinTower.Value)
     end)
 
+    -- =====================================
+    -- Auto Leave Tower Raid
+    -- =====================================
+
+    -- Slider: leave Tower Raid after X rooms cleared
+    Tabs.Raid:AddSlider("TowerLeaveWave", {
+        Title = "Tower Raid — Leave at Room #",
+        Description = "Auto-leave when \"Room Cleared: X\" reaches this number",
+        Default = 5,
+        Min = 1,
+        Max = 999,
+        Rounding = 0,
+    })
+
+    -- ✅ Confirmed: HUD.Dungeon.OldDungeon.Wave.Wave → Text = "Room Cleared: 5"
+    local function GetCurrentTowerWave()
+        local wave = nil
+        pcall(function()
+            local playerGui = Player:WaitForChild("PlayerGui", 5)
+            if not playerGui then return end
+            local waveLabel = playerGui
+                :WaitForChild("Main", 3)
+                :FindFirstChild("HUD")
+            if not waveLabel then return end
+            local dungeon = waveLabel:FindFirstChild("Dungeon")
+            if not dungeon then return end
+            local oldDungeon = dungeon:FindFirstChild("OldDungeon")
+            if not oldDungeon then return end
+            local waveFolder = oldDungeon:FindFirstChild("Wave")
+            if not waveFolder then return end
+            local label = waveFolder:FindFirstChild("Wave")
+            if label and label:IsA("TextLabel") then
+                -- Text format: "Room Cleared: 5"
+                local n = string.match(label.Text, "Room%s*Cleared:%s*(%d+)")
+                       or tonumber(string.match(label.Text, "(%d+)"))
+                if n then wave = tonumber(n) end
+            end
+        end)
+        return wave
+    end
+
+    local autoLeaveTowerRunning = false
+
+    local function ToggleAutoLeaveTower(state)
+        autoLeaveTowerRunning = state
+        if state then
+            task.spawn(function()
+                local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 15)
+                if not remotesFolder then return end
+                local leaveRemote = remotesFolder:FindFirstChild("LeaveRaid")
+                               or remotesFolder:FindFirstChild("EndRaid")
+                while autoLeaveTowerRunning do
+                    if IsInDungeon() then
+                        local w = GetCurrentTowerWave()
+                        local leaveAt = Options.TowerLeaveWave and Options.TowerLeaveWave.Value or 5
+                        if w and w >= leaveAt then
+                            Fluent:Notify({
+                                Title = "Tower Raid",
+                                Content = "Room " .. tostring(w) .. " cleared! Leaving.",
+                                Duration = 3
+                            })
+                            if leaveRemote then
+                                if leaveRemote:IsA("RemoteEvent") then leaveRemote:FireServer()
+                                elseif leaveRemote:IsA("RemoteFunction") then pcall(function() leaveRemote:InvokeServer() end) end
+                            end
+                            task.wait(3)
+                            local character = Player.Character
+                            if character and character:FindFirstChild("HumanoidRootPart") and safeWorldCF then
+                                character.HumanoidRootPart.CFrame = safeWorldCF
+                            end
+                            task.wait(5)
+                        end
+                    end
+                    task.wait(2)
+                end
+            end)
+        end
+    end
+
+    local AutoLeaveTowerToggle = Tabs.Raid:AddToggle("AutoLeaveTower", {Title = "Auto Leave Tower Raid at Room #", Default = false })
+    AutoLeaveTowerToggle:OnChanged(function()
+        ToggleAutoLeaveTower(Options.AutoLeaveTower.Value)
+    end)
+
+    -- =====================================
+    -- Auto Join/Open Wisteria Raid (W4)
+    -- =====================================
+
+    -- Slider: wave number to auto-leave at — goes up to 999 so no practical cap
+    Tabs.Raid:AddSlider("WisteriaLeaveWave", {
+        Title = "W4 Raid — Leave at Wave #",
+        Description = "Auto-leave when this wave number is reached",
+        Default = 5,
+        Min = 1,
+        Max = 999,
+        Rounding = 0,
+    })
+
+    -- Reads the CURRENT in-raid wave from confirmed HUD paths (from screenshot):
+    --   PlayerGui.Main.HUD.Dungeon.RaidsInfo.WavesFrame.Wave  (primary)
+    --   PlayerGui.Main.HUD.Dungeon.OldDungeon.Wave.Wave        (secondary)
+    local function GetCurrentWisteriaWave()
+        local wave = nil
+
+        pcall(function()
+            local playerGui = Player:WaitForChild("PlayerGui", 5)
+            if not playerGui then return end
+            local main = playerGui:WaitForChild("Main", 3)
+            if not main then return end
+            local hud = main:FindFirstChild("HUD")
+            if not hud then return end
+            local dungeon = hud:FindFirstChild("Dungeon")
+            if not dungeon then return end
+
+            -- ✅ Primary: HUD.Dungeon.RaidsInfo.WavesFrame.Wave
+            local raidsInfo = dungeon:FindFirstChild("RaidsInfo")
+            if raidsInfo then
+                local wavesFrame = raidsInfo:FindFirstChild("WavesFrame")
+                if wavesFrame then
+                    local waveLabel = wavesFrame:FindFirstChild("Wave")
+                    if waveLabel and waveLabel:IsA("TextLabel") then
+                        local n = tonumber(waveLabel.Text)
+                               or tonumber(string.match(waveLabel.Text, "(%d+)"))
+                        if n then wave = n; return end
+                    end
+                    -- WavesLabel might show "3/10" format
+                    local wavesLabel = wavesFrame:FindFirstChild("WavesLabel")
+                    if wavesLabel and wavesLabel:IsA("TextLabel") then
+                        local n = string.match(wavesLabel.Text, "(%d+)%s*/%s*%d+")
+                               or string.match(wavesLabel.Text, "[Ww]ave%s*(%d+)")
+                               or tonumber(wavesLabel.Text)
+                        if n then wave = tonumber(n); return end
+                    end
+                end
+            end
+
+        end)
+
+        return wave
+    end
+
+    local function HasOpenWisteriaSlot()
+        local wisteriaFolder = workspace:FindFirstChild("WisteriaRaid")
+        if not wisteriaFolder then return true end
+        for _, slot in ipairs(wisteriaFolder:GetChildren()) do
+            if slot:IsA("Folder") or slot:IsA("Model") then
+                local inUse = slot:GetAttribute("InUse")
+                if inUse == false or inUse == nil then return true end
+            end
+        end
+        return false
+    end
+
+    local function FireRemoteSafe(remote)
+        if not remote then return end
+        if remote:IsA("RemoteEvent") then
+            remote:FireServer()
+        elseif remote:IsA("RemoteFunction") then
+            pcall(function() remote:InvokeServer() end)
+        end
+    end
+
+    -- Shared leave logic used by both Join and Open loops
+    local function DoLeaveWisteria(leaveRemote)
+        local leaveWave = Options.WisteriaLeaveWave and Options.WisteriaLeaveWave.Value or 5
+        Fluent:Notify({
+            Title = "W4 Raid",
+            Content = "Wave " .. tostring(leaveWave) .. " reached! Leaving.",
+            Duration = 3
+        })
+        FireRemoteSafe(leaveRemote)
+        task.wait(3)
+        local character = Player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") and safeWorldCF then
+            character.HumanoidRootPart.CFrame = safeWorldCF
+        end
+    end
+
+    -- ── AUTO JOIN (JoinWisteriaRaid) ──
+    local autoJoinWisteriaRunning = false
+
+    local function ToggleAutoJoinWisteria(state)
+        autoJoinWisteriaRunning = state
+        if state then
+            task.spawn(function()
+                local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 15)
+                if not remotesFolder then return end
+                local joinRemote  = remotesFolder:FindFirstChild("JoinWisteriaRaid")
+                local leaveRemote = remotesFolder:FindFirstChild("LeaveRaid")
+                               or remotesFolder:FindFirstChild("EndRaid")
+                local justLeft = false
+                while autoJoinWisteriaRunning do
+                    if IsInDungeon() then
+                        justLeft = false
+                        local w = GetCurrentWisteriaWave()
+                        local leaveWave = Options.WisteriaLeaveWave and Options.WisteriaLeaveWave.Value or 5
+                        if w and w >= leaveWave then
+                            DoLeaveWisteria(leaveRemote)
+                            justLeft = true
+                            task.wait(5)
+                        end
+                        task.wait(2)
+                    else
+                        if justLeft then task.wait(5); justLeft = false
+                        else
+                            if HasOpenWisteriaSlot() then
+                                FireRemoteSafe(joinRemote)
+                            end
+                            task.wait(8)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+
+    local AutoJoinWisteriaToggle = Tabs.Raid:AddToggle("AutoJoinWisteria", {Title = "Auto Join W4 Raid (JoinWisteriaRaid)", Default = false })
+    AutoJoinWisteriaToggle:OnChanged(function()
+        ToggleAutoJoinWisteria(Options.AutoJoinWisteria.Value)
+    end)
+
+    -- ── AUTO OPEN (OpenWisteriaRaid) ──
+    local autoOpenWisteriaRunning = false
+
+    local function ToggleAutoOpenWisteria(state)
+        autoOpenWisteriaRunning = state
+        if state then
+            task.spawn(function()
+                local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 15)
+                if not remotesFolder then return end
+                local openRemote  = remotesFolder:FindFirstChild("OpenWisteriaRaid")
+                local leaveRemote = remotesFolder:FindFirstChild("LeaveRaid")
+                               or remotesFolder:FindFirstChild("EndRaid")
+                local justLeft = false
+                while autoOpenWisteriaRunning do
+                    if IsInDungeon() then
+                        justLeft = false
+                        local w = GetCurrentWisteriaWave()
+                        local leaveWave = Options.WisteriaLeaveWave and Options.WisteriaLeaveWave.Value or 5
+                        if w and w >= leaveWave then
+                            DoLeaveWisteria(leaveRemote)
+                            justLeft = true
+                            task.wait(5)
+                        end
+                        task.wait(2)
+                    else
+                        if justLeft then task.wait(5); justLeft = false
+                        else
+                            if HasOpenWisteriaSlot() then
+                                FireRemoteSafe(openRemote)
+                            end
+                            task.wait(8)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+
+    local AutoOpenWisteriaToggle = Tabs.Raid:AddToggle("AutoOpenWisteria", {Title = "Auto Open W4 Raid (OpenWisteriaRaid)", Default = false })
+    AutoOpenWisteriaToggle:OnChanged(function()
+        ToggleAutoOpenWisteria(Options.AutoOpenWisteria.Value)
+    end)
+
+    -- ── AUTO LEAVE (standalone — works without Join/Open) ──
+    local autoLeaveWisteriaRunning = false
+
+    local function ToggleAutoLeaveWisteria(state)
+        autoLeaveWisteriaRunning = state
+        if state then
+            task.spawn(function()
+                local remotesFolder = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 15)
+                if not remotesFolder then return end
+                local leaveRemote = remotesFolder:FindFirstChild("LeaveRaid")
+                               or remotesFolder:FindFirstChild("EndRaid")
+                while autoLeaveWisteriaRunning do
+                    if IsInDungeon() then
+                        local w = GetCurrentWisteriaWave()
+                        local leaveWave = Options.WisteriaLeaveWave and Options.WisteriaLeaveWave.Value or 5
+                        if w and w >= leaveWave then
+                            DoLeaveWisteria(leaveRemote)
+                            task.wait(6) -- cooldown after leaving
+                        end
+                    end
+                    task.wait(2)
+                end
+            end)
+        end
+    end
+
+    local AutoLeaveWisteriaToggle = Tabs.Raid:AddToggle("AutoLeaveWisteria", {Title = "Auto Leave W4 Raid at Wave #", Default = false })
+    AutoLeaveWisteriaToggle:OnChanged(function()
+        ToggleAutoLeaveWisteria(Options.AutoLeaveWisteria.Value)
+    end)
+
+    -- Manual leave button — press any time to immediately leave the current raid
+    Tabs.Raid:AddButton({
+        Title = "Leave Raid Now",
+        Description = "Immediately fires LeaveRaid and returns you to your saved position.",
+        Callback = function()
+            local remotesFolder = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+            if remotesFolder then
+                local leaveRemote = remotesFolder:FindFirstChild("LeaveRaid")
+                                 or remotesFolder:FindFirstChild("EndRaid")
+                FireRemoteSafe(leaveRemote)
+                task.wait(1)
+                local character = Player.Character
+                if character and character:FindFirstChild("HumanoidRootPart") and safeWorldCF then
+                    character.HumanoidRootPart.CFrame = safeWorldCF
+                end
+                Fluent:Notify({Title = "W4 Raid", Content = "Left raid manually.", Duration = 3})
+            end
+        end
+    })
+
     local RaidTimerLabel = Tabs.Raid:AddParagraph({
         Title = "Tower Raid Information",
         Content = "Calculating..."
@@ -636,48 +951,181 @@ do
     end)
 
     -- =====================================
-    -- Anti-AFK
+    -- Anti-AFK (Multi-Layer Rejoin Bypass)
     -- =====================================
-    local antiAfkConnection
-    local VirtualUser = game:GetService("VirtualUser")
+    local antiAfkActive = false
+    local antiAfkConnections = {}
+
+    local function StopAntiAfk()
+        antiAfkActive = false
+        for _, conn in ipairs(antiAfkConnections) do
+            if conn and conn.Connected then
+                conn:Disconnect()
+            end
+        end
+        antiAfkConnections = {}
+    end
 
     local function ToggleAntiAfk(state)
         if state then
-            -- Infinite Yield Anti-AFK Method
-            if getconnections then
-                pcall(function()
-                    for _, connection in pairs(getconnections(Player.Idled)) do
-                        if connection["Disable"] then
-                            connection:Disable()
-                        elseif connection["Disconnect"] then
-                            connection:Disconnect()
+            if antiAfkActive then return end -- Already running
+            antiAfkActive = true
+
+            -- ── Layer 1: VirtualUser on Roblox's engine Idle event (20-min timer) ──
+            pcall(function()
+                local VirtualUser = game:GetService("VirtualUser")
+                local conn = Player.Idled:Connect(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                end)
+                table.insert(antiAfkConnections, conn)
+            end)
+
+            -- ── Layer 2: Periodic fake input every 25s to outrun game-side timers ──
+            -- Many games have their OWN AFK kick timers (often 60-300s).
+            -- Simulating input prevents those from ever triggering.
+            task.spawn(function()
+                local VirtualUser = game:GetService("VirtualUser")
+                local UIS = game:GetService("UserInputService")
+                while antiAfkActive do
+                    pcall(function()
+                        -- Simulate mouse movement + a button press to reset ALL idle counters
+                        VirtualUser:CaptureController()
+                        VirtualUser:ClickButton2(Vector2.new())
+                        VirtualUser:MoveMouse(Vector2.new(1, 0), Vector2.new(0, 0))
+                    end)
+                    task.wait(25)
+                end
+            end)
+
+            -- ── Layer 3: Simulate character activity every 45s ──
+            -- Some games check whether your Humanoid has moved recently.
+            -- A tiny CFrame nudge keeps the server-side activity tracker satisfied.
+            task.spawn(function()
+                while antiAfkActive do
+                    pcall(function()
+                        local character = Player.Character
+                        if character then
+                            local hrp = character:FindFirstChild("HumanoidRootPart")
+                            local humanoid = character:FindFirstChild("Humanoid")
+                            if hrp and humanoid and humanoid.Health > 0 then
+                                -- Tiny nudge: shift 0.05 studs and back so physics registers movement
+                                local origin = hrp.CFrame
+                                hrp.CFrame = origin * CFrame.new(0.05, 0, 0)
+                                task.wait(0.05)
+                                hrp.CFrame = origin
+                            end
+                        end
+                    end)
+                    task.wait(45)
+                end
+            end)
+
+            -- ── Layer 4: Block ALL AutoRejoin Vectors ──
+            -- This game uses AutoRejoinRun / AutoRejoinTeleport / AutoRejoinTrain
+            -- remotes in ReplicatedStorage. Rejoin can happen 3 ways:
+            --   A) Server fires remote → client LocalScript calls TeleportService  [block OnClientEvent]
+            --   B) Client LocalScript detects AFK → fires remote to server → server kicks [block FireServer]
+            --   C) Server calls TeleportService or player:Kick() directly            [hook metamethod]
+            -- We cover ALL three below.
+            task.spawn(function()
+                local remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 15)
+                if not remotes then return end
+
+                local REJOIN_REMOTES = {
+                    "AutoRejoinRun",
+                    "AutoRejoinTeleport",
+                    "AutoRejoinTrain",
+                }
+
+                -- ── 4A: Disconnect existing OnClientEvent listeners + dummy absorber ──
+                local function NukeRejoinListeners()
+                    for _, remoteName in ipairs(REJOIN_REMOTES) do
+                        local remote = remotes:FindFirstChild(remoteName)
+                        if remote and remote:IsA("RemoteEvent") then
+                            if getconnections then
+                                for _, conn in ipairs(getconnections(remote.OnClientEvent)) do
+                                    pcall(function() conn:Disconnect() end)
+                                end
+                            end
+                            -- Dummy absorber swallows any future server fires
+                            remote.OnClientEvent:Connect(function() end)
                         end
                     end
-                end)
-            end
+                end
 
-            if not antiAfkConnection then
-                antiAfkConnection = Player.Idled:Connect(function()
-                    VirtualUser:CaptureController()
-                    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-                    task.wait(1)
-                    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                NukeRejoinListeners()
+                -- Re-check every 30s in case the game script reconnects
+                task.spawn(function()
+                    while antiAfkActive do
+                        task.wait(30)
+                        NukeRejoinListeners()
+                    end
                 end)
-            end
+
+                -- ── 4B: Block client→server "report AFK" FireServer calls ──
+                -- If the LocalScript fires AutoRejoin*:FireServer() to tell the
+                -- server to kick this player, intercept and swallow it.
+                if hookmetamethod and getnamecallmethod then
+                    pcall(function()
+                        local rejoinSet = {}
+                        for _, name in ipairs(REJOIN_REMOTES) do
+                            local r = remotes:FindFirstChild(name)
+                            if r then rejoinSet[r] = true end
+                        end
+
+                        local mt = getrawmetatable(game)
+                        local oldNamecall = mt.__namecall
+                        setreadonly(mt, false)
+                        mt.__namecall = newcclosure(function(self, ...)
+                            local method = getnamecallmethod()
+                            -- Block FireServer on any of the AutoRejoin remotes
+                            if rejoinSet[self] and (method == "FireServer" or method == "InvokeServer") then
+                                return -- swallow silently
+                            end
+                            -- Block TeleportService (vector C) — only while anti-AFK is on
+                            if antiAfkActive then
+                                local ok, ts = pcall(function() return game:GetService("TeleportService") end)
+                                if ok and self == ts and (
+                                    method == "Teleport" or
+                                    method == "TeleportAsync" or
+                                    method == "TeleportToPlaceInstance" or
+                                    method == "TeleportPartyAsync"
+                                ) then
+                                    return -- block ALL teleports while anti-AFK is active
+                                end
+                            end
+                            return oldNamecall(self, ...)
+                        end)
+                        setreadonly(mt, true)
+                    end)
+                end
+
+                -- ── 4C: Hook player:Kick() to prevent server-initiated kicks ──
+                -- Some games call player:Kick() directly. We override the method.
+                pcall(function()
+                    local oldKick = Player.Kick
+                    Player.Kick = function(self, ...)
+                        if antiAfkActive then
+                            -- Silently ignore kick calls while anti-AFK is running
+                            return
+                        end
+                        return oldKick(self, ...)
+                    end
+                end)
+            end)
+
         else
-            if antiAfkConnection then
-                antiAfkConnection:Disconnect()
-                antiAfkConnection = nil
-            end
+            StopAntiAfk()
         end
     end
 
-    local AntiAfkToggle = Tabs.Main:AddToggle("AntiAfk", {Title = "Anti-AFK", Default = true })
+    local AntiAfkToggle = Tabs.Main:AddToggle("AntiAfk", {Title = "Anti-AFK (Multi-Layer)", Default = true })
     AntiAfkToggle:OnChanged(function()
         ToggleAntiAfk(Options.AntiAfk.Value)
     end)
 
-    -- Initialize default state
+    -- Initialize default state immediately on load
     ToggleAntiAfk(true)
 end
 
